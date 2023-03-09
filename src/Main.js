@@ -1,11 +1,12 @@
-import React, {useState} from 'react';
-import {useEffect} from 'react';
-import { phish } from './phish';
-import { uuid } from 'uuidv4';
-import './App.css';
+import React, { useState } from "react";
+import { useEffect } from "react";
+import { phish } from "./phish";
+import { uuid } from "uuidv4";
+import Masonry from "react-masonry-css";
+import "./App.css";
 
 function Main() {
-  const myKey = '9F88FFD6577D0257D407';
+  const myKey = "9F88FFD6577D0257D407";
   const [shows, setShows] = useState(phish);
   const [mySongs, setMySongs] = useState([]);
 
@@ -13,24 +14,26 @@ function Main() {
     async function fetchData() {
       const newArray = phish;
       // console.log(newArray);
-      const showDates = newArray.map(value => value.showDate);
+      const showDates = newArray.map((value) => value.showDate);
       // console.log(showDates);
       let newObjects = [];
       for (let i = 0; i < newArray.length; i++) {
         let mySong = newArray[i];
         let showDate = showDates[i];
         let setlist = {};
-        let index = [i+1];
-        const responseSetlist = await fetch(`https://api.phish.net/v5/setlists/showdate/${showDate}.json?apikey=${myKey}`);
+        let index = [i + 1];
+        const responseSetlist = await fetch(
+          `https://api.phish.net/v5/setlists/showdate/${showDate}.json?apikey=${myKey}`
+        );
         const dateSetlist = await responseSetlist.json();
         // console.log(dateSetlist.data);
         setlist = dateSetlist.data.map(
           (value) => value.set + " " + value.song + " (" + value.gap + ")"
         );
-        mySong = {...mySong, setlist, index};
+        mySong = { ...mySong, setlist, index };
         newObjects.push(mySong);
         // console.log(newObjects);
-        }
+      }
       setMySongs(newObjects);
     }
     fetchData();
@@ -48,12 +51,12 @@ function Main() {
   //     const today = new Date();
   //     const difference = showDate - today;
   //     let minLeft = {};
-    
+
   //     let displayDays = Math.floor(difference / (1000 * 60 * 60 * 24));
   //     let displayHours = Math.floor((difference / (1000 * 60 * 60)) % 24);
   //     let displayMinutes = Math.floor((difference / 1000 / 60) % 60);
   //     let displaySeconds = Math.floor((difference / 1000) % 60);
-    
+
   //     if (displayDays < 10) displayDays = "0" + displayDays;
   //     if (displayHours < 10) displayHours = "0" + displayHours;
   //     if (displayMinutes < 10) displayMinutes = "0" + displayMinutes;
@@ -87,44 +90,67 @@ function Main() {
   //   return () => clearInterval(tick);
   // });
 
+  const breakpointColumnsObj = {
+    default: 4,
+    1100: 3,
+    700: 2,
+    500: 1,
+  };
+
   const clickMap = (id) => {
     const newShows = [];
-    shows.forEach(show => {
+    shows.forEach((show) => {
       if (show.id === id) {
-        const changedShows = {...show, showMap: !show.showMap};
+        const changedShows = { ...show, showMap: !show.showMap };
         newShows.push(changedShows);
       } else {
         newShows.push(show);
       }
     });
-    setShows(newShows); 
-  }
+    setShows(newShows);
+  };
 
   const clickSetlist = (showDate) => {
     const newSongs = [];
-    mySongs.forEach(song => {
+    mySongs.forEach((song) => {
       if (song.showDate === showDate) {
-        const changedSongs = {...song, showMore: !song.showMore};
+        const changedSongs = { ...song, showMore: !song.showMore };
         newSongs.push(changedSongs);
       } else {
         newSongs.push(song);
       }
     });
     setMySongs(newSongs);
-  }
+  };
 
   return (
     <div>
-      <div className='container'>
-        <h1 className='gradient-text'>2022 Phish Spring-Summer Tour</h1>
+      <div className="container">
+        <h1 className="gradient-text">2022 Phish Spring-Summer Tour</h1>
       </div>
       {/* <div className='container'>
         <h2 style={{margin: '.25em'}}>The next show is in:</h2>
         <h2 className='timer'>{showStatement ? `It's showtime!` : `${timer.days} : ${timer.hours} : ${timer.minutes} : ${timer.seconds}`}</h2>
       </div> */}
-      <div className='list'>
-        {mySongs.map((element => {
-          const {id, date, venue, photo, link, address, tickets, showMap, setlist, showDate, showMore} = element;
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="my-masonry-grid"
+        columnClassName="my-masonry-grid_column"
+      >
+        {mySongs.map((element) => {
+          const {
+            id,
+            date,
+            venue,
+            photo,
+            link,
+            address,
+            tickets,
+            showMap,
+            setlist,
+            showDate,
+            showMore,
+          } = element;
           return (
             <div
               className="item"
@@ -163,20 +189,25 @@ function Main() {
                 allowFullScreen=""
                 loading="lazy"
               ></iframe>
-                <button className={showMore ? "btnMap" : "none"} onClick={() => clickSetlist(showDate)} >Setlist</button>
-                <ul
-                  className="setlist"
-                  style={{ display: `${showMore ? "flex" : "none"}` }}
-                >
-                  <p>song name (show gap)</p>
-                  {setlist.map((element) => {
-                    return <li key={uuid()}>&nbsp;&nbsp;{element}</li>;
-                  })}
-                </ul>
-              </div>
+              <button
+                className={showMore ? "btnMap" : "none"}
+                onClick={() => clickSetlist(showDate)}
+              >
+                Setlist
+              </button>
+              <ul
+                className="setlist"
+                style={{ display: `${showMore ? "flex" : "none"}` }}
+              >
+                <p>song name (show gap)</p>
+                {setlist.map((element) => {
+                  return <li key={uuid()}>&nbsp;&nbsp;{element}</li>;
+                })}
+              </ul>
+            </div>
           );
-        }))}
-      </div>
+        })}
+      </Masonry>
     </div>
   );
 }
